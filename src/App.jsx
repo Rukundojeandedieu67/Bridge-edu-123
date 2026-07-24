@@ -1,5 +1,6 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import AppLayout from './components/AppLayout.jsx'
+import Navbar from './components/Navbar.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import { useAuth } from './context/AuthContext.jsx'
 import LoginPage from './pages/LoginPage.jsx'
@@ -27,7 +28,10 @@ function ProtectedLayout({ children }) {
 }
 
 function App() {
-  const { isLoading } = useAuth()
+  const { isLoading, isAuthenticated } = useAuth()
+  const location = useLocation()
+  const hideNavbarOn = ['/login', '/register']
+  const showNavbar = isAuthenticated && !hideNavbarOn.some((path) => location.pathname.startsWith(path))
 
   if (isLoading) {
     return (
@@ -38,17 +42,20 @@ function App() {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<RootRedirect />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+    <>
+      {showNavbar && <Navbar />}
+      <Routes>
+        <Route path="/" element={<RootRedirect />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
-      <Route path="/opportunities" element={<ProtectedLayout><OpportunitiesPage /></ProtectedLayout>} />
-      <Route path="/pathways" element={<ProtectedLayout><PathwaysPage /></ProtectedLayout>} />
-      <Route path="/mentorship" element={<ProtectedLayout><MentorshipPage /></ProtectedLayout>} />
+        <Route path="/opportunities" element={<ProtectedLayout><OpportunitiesPage /></ProtectedLayout>} />
+        <Route path="/pathways" element={<ProtectedLayout><PathwaysPage /></ProtectedLayout>} />
+        <Route path="/mentorship" element={<ProtectedLayout><MentorshipPage /></ProtectedLayout>} />
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   )
 }
 
