@@ -21,9 +21,12 @@ function formatDeadline(deadline) {
   }).format(parsed)
 }
 
-function OpportunityCard({ opportunity, isAdmin, onEdit, onDelete }) {
+function OpportunityCard({ opportunity, isAdmin, onEdit, onDelete, onView, onApply, canApply, isApplying }) {
   const description = opportunity.description?.trim() || 'No description provided.'
   const truncatedDescription = description.length > 150 ? `${description.slice(0, 147)}...` : description
+  const verified = opportunity.is_verified ?? opportunity.verified ?? opportunity.verification_status === 'verified'
+  const verificationLabel = opportunity.verification_status || (verified ? 'Verified' : 'Unverified')
+  const verificationClass = verified ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
 
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
@@ -32,9 +35,14 @@ function OpportunityCard({ opportunity, isAdmin, onEdit, onDelete }) {
           <h2 className="text-lg font-semibold text-slate-900">{opportunity.title}</h2>
           <p className="mt-1 text-sm text-slate-600">{opportunity.provider_name}</p>
         </div>
-        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${categoryStyles[opportunity.category] ?? 'bg-slate-100 text-slate-700'}`}>
-          {opportunity.category}
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${categoryStyles[opportunity.category] ?? 'bg-slate-100 text-slate-700'}`}>
+            {opportunity.category}
+          </span>
+          <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${verificationClass}`}>
+            {verificationLabel}
+          </span>
+        </div>
       </div>
 
       <p className="mb-3 text-sm leading-6 text-slate-700">{truncatedDescription}</p>
@@ -53,7 +61,15 @@ function OpportunityCard({ opportunity, isAdmin, onEdit, onDelete }) {
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        {opportunity.external_link ? (
+        {onView ? (
+          <button
+            type="button"
+            onClick={() => onView(opportunity)}
+            className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-200"
+          >
+            View details
+          </button>
+        ) : opportunity.external_link ? (
           <a
             href={opportunity.external_link}
             target="_blank"
@@ -62,6 +78,23 @@ function OpportunityCard({ opportunity, isAdmin, onEdit, onDelete }) {
           >
             View details / Apply
           </a>
+        ) : null}
+
+        {onApply && canApply ? (
+          <button
+            type="button"
+            onClick={() => onApply(opportunity)}
+            disabled={isApplying}
+            className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+          >
+            {isApplying ? 'Applying…' : 'Apply now'}
+          </button>
+        ) : null}
+
+        {onApply && !canApply ? (
+          <span className="rounded-lg bg-emerald-100 px-3 py-1.5 text-sm font-semibold text-emerald-700">
+            Applied
+          </span>
         ) : null}
 
         {isAdmin ? (

@@ -33,8 +33,9 @@ function LoginPage() {
     setSubmitError('')
 
     try {
-      await login(values)
-      navigate('/opportunities')
+      const payload = await login(values)
+      const role = payload?.user?.role || 'student'
+      navigate(role === 'admin' ? '/admin' : '/opportunities')
     } catch (error) {
       const message = error?.response?.data?.message || 'Unable to sign in. Please try again.'
       setSubmitError(message)

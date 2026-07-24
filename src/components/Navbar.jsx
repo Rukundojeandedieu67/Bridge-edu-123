@@ -52,6 +52,32 @@ function Navbar() {
               {item.label}
             </NavLink>
           ))}
+          <NavLink
+            to="/profile"
+            className={({ isActive }) =>
+              `rounded-full px-3 py-2 text-sm font-medium transition ${
+                isActive
+                  ? 'bg-slate-900 text-white shadow-sm'
+                  : 'text-slate-700 hover:bg-slate-100'
+              }`
+            }
+          >
+            Profile
+          </NavLink>
+          {role === 'admin' ? (
+            <NavLink
+              to="/admin"
+              className={({ isActive }) =>
+                `rounded-full px-3 py-2 text-sm font-medium transition ${
+                  isActive
+                    ? 'bg-slate-900 text-white shadow-sm'
+                    : 'text-slate-700 hover:bg-slate-100'
+                }`
+              }
+            >
+              Admin
+            </NavLink>
+          ) : null}
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
@@ -106,6 +132,33 @@ function Navbar() {
               <span className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${badgeClass}`}>
                 {role}
               </span>
+
+              <NavLink
+                to="/profile"
+                onClick={() => setIsMenuOpen(false)}
+                className={({ isActive }) =>
+                  `mt-3 block rounded-lg px-3 py-2 text-sm font-medium ${
+                    isActive ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'
+                  }`
+                }
+              >
+                Profile
+              </NavLink>
+
+              {role === 'admin' ? (
+                <NavLink
+                  to="/admin"
+                  onClick={() => setIsMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `mt-2 block rounded-lg px-3 py-2 text-sm font-medium ${
+                      isActive ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'
+                    }`
+                  }
+                >
+                  Admin
+                </NavLink>
+              ) : null}
+
               <button
                 type="button"
                 onClick={handleLogout}

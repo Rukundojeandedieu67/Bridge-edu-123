@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import OpportunityCard from '../components/OpportunityCard.jsx'
+import OpportunityDetailsModal from '../components/OpportunityDetailsModal.jsx'
 import OpportunityFormModal from '../components/OpportunityFormModal.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useOpportunityApplications } from '../hooks/useOpportunityApplications.js'
 import { useOpportunities } from '../hooks/useOpportunities.js'
 
 const categoryOptions = ['all', 'scholarship', 'bootcamp', 'micro_task', 'grant']
@@ -18,6 +20,8 @@ function OpportunitiesPage() {
   const [page, setPage] = useState(1)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingOpportunity, setEditingOpportunity] = useState(null)
+  const [selectedOpportunity, setSelectedOpportunity] = useState(null)
+  const [applicationFeedback, setApplicationFeedback] = useState('')
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -49,11 +53,17 @@ function OpportunitiesPage() {
     updateOpportunity,
     deleteOpportunity,
   } = useOpportunities(filters)
+  const {
+    applications,
+    createApplication,
+    isCreating,
+  } = useOpportunityApplications()
 
   const list = opportunities?.data ?? []
   const meta = opportunities?.meta ?? {}
   const currentPage = meta.current_page ?? 1
   const lastPage = meta.last_page ?? 1
+  const appliedOpportunityIds = useMemo(() => new Set((applications ?? []).map((application) => application.opportunity?.id ?? application.opportunity_id)), [applications])
 
   const openCreateModal = () => {
     setEditingOpportunity(null)
@@ -83,6 +93,26 @@ function OpportunitiesPage() {
     await deleteOpportunity(id)
   }
 
+  const openDetails = (opportunity) => {
+    setSelectedOpportunity(opportunity)
+  }
+
+  const closeDetails = () => {
+    setSelectedOpportunity(null)
+  }
+
+  const handleApply = async (opportunity) => {
+    setApplicationFeedback('')
+
+    try {
+      await createApplication({ opportunity_id: opportunity.id, cover_letter: '' })
+      setApplicationFeedback(`Application submitted for ${opportunity.title}.`)
+    } catch (error) {
+      const message = error?.response?.data?.message || 'Unable to submit your application right now.'
+      setApplicationFeedback(message)
+    }
+  }
+
   return (
     <main className="min-h-screen bg-slate-100 px-3 py-4 sm:px-6 sm:py-6">
       <div className="mx-auto max-w-6xl">
@@ -103,6 +133,12 @@ function OpportunitiesPage() {
               </button>
             ) : null}
           </div>
+
+          {applicationFeedback ? (
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+              {applicationFeedback}
+            </div>
+          ) : null}
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
             <label className="block text-sm font-medium text-slate-700">
@@ -192,6 +228,10 @@ function OpportunitiesPage() {
                 isAdmin={isAdmin}
                 onEdit={openEditModal}
                 onDelete={handleDelete}
+                onView={openDetails}
+                onApply={user?.role === 'student' ? handleApply : null}
+                canApply={!isAdmin && !appliedOpportunityIds.has(opportunity.id)}
+                isApplying={isCreating}
               />
             ))}
           </div>
@@ -227,6 +267,12 @@ function OpportunitiesPage() {
           initialData={editingOpportunity}
           onClose={closeModal}
           onSubmit={handleCreateOrUpdate}
+        />
+
+        <OpportunityDetailsModal
+          opportunity={selectedOpportunity}
+          isOpen={Boolean(selectedOpportunity)}
+          onClose={closeDetails}
         />
       </div>
     </main>

@@ -7,6 +7,8 @@ import LoginPage from './pages/LoginPage.jsx'
 import MentorshipPage from './pages/MentorshipPage.jsx'
 import OpportunitiesPage from './pages/OpportunitiesPage.jsx'
 import PathwaysPage from './pages/PathwaysPage.jsx'
+import ProfilePage from './pages/ProfilePage.jsx'
+import AdminPage from './pages/AdminPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 
 function RootRedirect() {
@@ -52,6 +54,17 @@ function App() {
         <Route path="/opportunities" element={<ProtectedLayout><OpportunitiesPage /></ProtectedLayout>} />
         <Route path="/pathways" element={<ProtectedLayout><PathwaysPage /></ProtectedLayout>} />
         <Route path="/mentorship" element={<ProtectedLayout><MentorshipPage /></ProtectedLayout>} />
+        <Route path="/profile" element={<ProtectedLayout><ProfilePage /></ProtectedLayout>} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={[ 'admin' ]}>
+              <AppLayout>
+                <AdminPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
