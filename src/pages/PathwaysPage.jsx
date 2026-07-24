@@ -5,7 +5,7 @@ import { usePathways } from '../hooks/usePathways.js'
 
 function PathwaysPage() {
   const { user } = useAuth()
-  const isAdmin = user?.role === 'admin'
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin'
 
   const [expandedPathwayId, setExpandedPathwayId] = useState(null)
   const [isPathwayModalOpen, setIsPathwayModalOpen] = useState(false)

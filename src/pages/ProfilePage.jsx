@@ -1,10 +1,71 @@
 import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useOpportunityApplications } from '../hooks/useOpportunityApplications.js'
+import { useMentorship } from '../hooks/useMentorship.js'
 
 function ProfilePage() {
-  const { user } = useAuth()
+  const { user, updateProfile } = useAuth()
   const { applications, isLoading: isLoadingApplications } = useOpportunityApplications()
+  const { mentorshipRequests } = useMentorship()
+
+  const [isEditing, setIsEditing] = useState(false)
+  const [formState, setFormState] = useState({})
+  const [saveError, setSaveError] = useState('')
+
+  useEffect(() => {
+    setFormState({
+      full_name: user?.full_name || user?.name || '',
+      district: user?.district || '',
+      sector: user?.sector || '',
+      education_level: user?.education_level || '',
+    })
+  }, [user])
+
+  const matchedConversations = useMemo(() => {
+    if (!Array.isArray(mentorshipRequests)) return []
+
+    const matched = mentorshipRequests.filter((r) => r.status === 'matched')
+    return matched.filter((r) => {
+      const mentorId = r?.mentor?.id ?? r?.mentor_id
+      const studentId = r?.student?.id ?? r?.student_id
+      return Number(mentorId) === Number(user?.id) || Number(studentId) === Number(user?.id)
+    })
+  }, [mentorshipRequests, user?.id])
+
+  // messages stored in localStorage under key 'bridgeedu-messages'
+  const [messagesState, setMessagesState] = useState({})
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem('bridgeedu-messages')
+      setMessagesState(raw ? JSON.parse(raw) : {})
+    } catch {
+      setMessagesState({})
+    }
+  }, [])
+
+  const persistMessages = (next) => {
+    setMessagesState(next)
+    try {
+      window.localStorage.setItem('bridgeedu-messages', JSON.stringify(next))
+    } catch {}
+  }
+
+  const conversationId = (mentorId, studentId) => {
+    const a = String(mentorId)
+    const b = String(studentId)
+    return a < b ? `${a}_${b}` : `${b}_${a}`
+  }
+
+  const sendMessage = (convId, text) => {
+    if (!text || !convId) return
+    const now = new Date().toISOString()
+    const next = { ...(messagesState || {}) }
+    next[convId] = next[convId] ?? []
+    next[convId].push({ senderId: user?.id, text, created_at: now })
+    persistMessages(next)
+  }
 
   const profileFields = [
     { label: 'Full name', value: user?.full_name || user?.name || 'N/A' },
@@ -33,6 +94,130 @@ function ProfilePage() {
               </article>
             ))}
           </div>
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">Conversations</h2>
+              <p className="mt-1 text-sm text-slate-600">Chat with your matched mentor or mentees. Messages are stored locally for now.</p>
+            </div>
+          </div>
+
+          {matchedConversations.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-600">
+              No matched mentorships yet. Approve or claim a mentorship to enable conversations.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {matchedConversations.map((r) => {
+                const mentorId = r?.mentor?.id ?? r?.mentor_id
+                const studentId = r?.student?.id ?? r?.student_id
+                const other = Number(mentorId) === Number(user?.id) ? r.student : r.mentor
+                const convId = conversationId(mentorId, studentId)
+                return (
+                  <article key={r.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-slate-900">Conversation with {other?.full_name || other?.name || 'User'}</p>
+                        <p className="text-sm text-slate-600">Topic: {r.topic_of_interest}</p>
+                      </div>
+                    </div>
+
+                    <div className="mb-3 max-h-48 overflow-auto rounded-lg border border-slate-200 bg-white p-3">
+                      {(messagesState[convId] || []).map((m, idx) => (
+                        <div key={idx} className={`mb-2 flex ${m.senderId === user?.id ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${m.senderId === user?.id ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-900'}`}>
+                            {m.text}
+                            <div className="mt-1 text-xs text-slate-300">{new Date(m.created_at).toLocaleString()}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <MessageInput onSend={(text) => sendMessage(convId, text)} />
+                  </article>
+                )
+              })}
+            </div>
+          )}
+        </section>
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">Edit profile</h2>
+              <p className="mt-1 text-sm text-slate-600">You can update your profile details. Email cannot be changed here.</p>
+            </div>
+            <div>
+              <button
+                type="button"
+                onClick={() => setIsEditing((s) => !s)}
+                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                {isEditing ? 'Cancel' : 'Edit profile'}
+              </button>
+            </div>
+          </div>
+
+          {isEditing ? (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault()
+                setSaveError('')
+                try {
+                  const updated = await updateProfile(formState)
+                  setFormState({
+                    full_name: updated?.full_name || '',
+                    district: updated?.district || '',
+                    sector: updated?.sector || '',
+                    education_level: updated?.education_level || '',
+                  })
+                  setIsEditing(false)
+                } catch (err) {
+                  setSaveError(err?.response?.data?.message || 'Unable to save profile. Please try again.')
+                }
+              }}
+              className="space-y-4"
+            >
+              {saveError ? <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{saveError}</div> : null}
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Email</label>
+                <input type="email" value={user?.email || ''} readOnly className="mt-1 w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-sm text-slate-700" />
+                <p className="mt-1 text-xs text-slate-500">Email changes must be requested via support.</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Full name</label>
+                <input
+                  value={formState.full_name ?? ''}
+                  onChange={(e) => setFormState((s) => ({ ...s, full_name: e.target.value }))}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">District</label>
+                  <input value={formState.district ?? ''} onChange={(e) => setFormState((s) => ({ ...s, district: e.target.value }))} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">Sector</label>
+                  <input value={formState.sector ?? ''} onChange={(e) => setFormState((s) => ({ ...s, sector: e.target.value }))} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Education level</label>
+                <input value={formState.education_level ?? ''} onChange={(e) => setFormState((s) => ({ ...s, education_level: e.target.value }))} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">Save changes</button>
+                <button type="button" onClick={() => setIsEditing(false)} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Cancel</button>
+              </div>
+            </form>
+          ) : null}
         </section>
 
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
@@ -110,3 +295,22 @@ function ProfilePage() {
 }
 
 export default ProfilePage
+
+function MessageInput({ onSend }) {
+  const [text, setText] = useState('')
+
+  const handleSend = (e) => {
+    e.preventDefault()
+    const t = text.trim()
+    if (!t) return
+    onSend(t)
+    setText('')
+  }
+
+  return (
+    <form onSubmit={handleSend} className="mt-2 flex gap-2">
+      <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Write a message..." className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+      <button type="submit" className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700">Send</button>
+    </form>
+  )
+}

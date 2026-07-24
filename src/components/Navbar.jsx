@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
+import logo from '../assets/bridge-edu.png'
 
 const navItems = [
   { to: '/opportunities', label: 'Opportunities' },
@@ -12,6 +13,14 @@ const roleBadgeStyles = {
   student: 'bg-sky-100 text-sky-800',
   mentor: 'bg-emerald-100 text-emerald-800',
   admin: 'bg-rose-100 text-rose-800',
+  super_admin: 'bg-fuchsia-100 text-fuchsia-800',
+}
+
+const roleLabels = {
+  student: 'Student',
+  mentor: 'Mentor',
+  admin: 'Admin',
+  super_admin: 'Super Admin',
 }
 
 function Navbar() {
@@ -26,13 +35,15 @@ function Navbar() {
 
   const role = user?.role ?? 'student'
   const badgeClass = roleBadgeStyles[role] ?? roleBadgeStyles.student
+  const roleLabel = roleLabels[role] ?? roleLabels.student
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">
-          <NavLink to="/opportunities" className="text-lg font-semibold tracking-tight text-slate-900">
-            BridgeEdu Rwanda
+          <NavLink to="/opportunities" className="flex items-center gap-3">
+            <img src={logo} alt="BridgeEdu" className="h-8 w-auto" />
+            <span className="text-lg font-semibold tracking-tight text-slate-900">BridgeEdu Rwanda</span>
           </NavLink>
         </div>
 
@@ -64,7 +75,7 @@ function Navbar() {
           >
             Profile
           </NavLink>
-          {role === 'admin' ? (
+          {(role === 'admin' || role === 'super_admin') ? (
             <NavLink
               to="/admin"
               className={({ isActive }) =>
@@ -84,7 +95,7 @@ function Navbar() {
           <div className="text-right">
             <p className="text-sm font-semibold text-slate-900">{user?.full_name || 'User'}</p>
             <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${badgeClass}`}>
-              {role}
+              {roleLabel}
             </span>
           </div>
           <button
@@ -145,7 +156,7 @@ function Navbar() {
                 Profile
               </NavLink>
 
-              {role === 'admin' ? (
+              {(role === 'admin' || role === 'super_admin') ? (
                 <NavLink
                   to="/admin"
                   onClick={() => setIsMenuOpen(false)}

@@ -68,14 +68,26 @@ function OpportunityDetailsModal({ isOpen, opportunity, onClose }) {
         {opportunity.external_link ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-4">
             <p className="text-sm font-semibold text-slate-900">Apply or learn more</p>
-            <a
-              href={opportunity.external_link}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-2 inline-flex rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
-            >
-              Open application page
-            </a>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <a
+                href={opportunity.external_link}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+              >
+                Open application page
+              </a>
+              <a
+                href="#"
+                onClick={(event) => {
+                  event.preventDefault()
+                  window.alert('Application flow will be completed once the backend endpoint is ready.')
+                }}
+                className="inline-flex rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                Apply later
+              </a>
+            </div>
           </div>
         ) : null}
       </div>

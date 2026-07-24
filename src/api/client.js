@@ -2,9 +2,10 @@ import axios from 'axios'
 
 const AUTH_STORAGE_KEY = 'bridgeedu-auth-state'
 
+const rawBaseURL = String(import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1').trim()
+
 const apiClient = axios.create({
-  // baseURL: 'http://localhost:8000/api/v1',
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
+  baseURL: rawBaseURL.replace(/\/+$/, ''),
   headers: {
     Accept: 'application/json',
     'Content-Type': 'application/json',

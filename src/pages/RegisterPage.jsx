@@ -46,7 +46,7 @@ function RegisterPage() {
     try {
       const payload = await registerUser(values)
       const role = payload?.user?.role || 'student'
-      navigate(role === 'admin' ? '/admin' : '/opportunities')
+      navigate(role === 'admin' || role === 'super_admin' ? '/admin' : '/opportunities')
     } catch (error) {
       const message = error?.response?.data?.message || 'Unable to create your account. Please try again.'
       setSubmitError(message)

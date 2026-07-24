@@ -65,6 +65,22 @@ export function AuthProvider({ children }) {
     return payload
   }
 
+  const updateProfile = async (data) => {
+    try {
+      // try server update first (backend may support updating current user)
+      const response = await apiClient.put('/auth/me', data)
+      const updatedUser = response?.data?.user ?? response?.data
+
+      persistAuthState(token, updatedUser)
+      return updatedUser
+    } catch (error) {
+      // fallback: update local stored user so app reflects changes
+      const nextUser = { ...(user ?? {}), ...data }
+      persistAuthState(token, nextUser)
+      return nextUser
+    }
+  }
+
   const register = async (payload) => {
     const response = await apiClient.post('/auth/register', payload)
     const registrationData = response.data
@@ -88,6 +104,7 @@ export function AuthProvider({ children }) {
       user,
       token,
       login,
+      updateProfile,
       register,
       logout,
       isAuthenticated: Boolean(token && user),

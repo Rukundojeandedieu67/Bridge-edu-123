@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import AppLayout from './components/AppLayout.jsx'
+import Footer from './components/Footer.jsx'
 import Navbar from './components/Navbar.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import { useAuth } from './context/AuthContext.jsx'
@@ -46,28 +47,33 @@ function App() {
   return (
     <>
       {showNavbar && <Navbar />}
-      <Routes>
-        <Route path="/" element={<RootRedirect />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+      <div className="flex min-h-screen flex-col">
+        <div className="flex-1">
+          <Routes>
+            <Route path="/" element={<RootRedirect />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
-        <Route path="/opportunities" element={<ProtectedLayout><OpportunitiesPage /></ProtectedLayout>} />
-        <Route path="/pathways" element={<ProtectedLayout><PathwaysPage /></ProtectedLayout>} />
-        <Route path="/mentorship" element={<ProtectedLayout><MentorshipPage /></ProtectedLayout>} />
-        <Route path="/profile" element={<ProtectedLayout><ProfilePage /></ProtectedLayout>} />
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute allowedRoles={[ 'admin' ]}>
-              <AppLayout>
-                <AdminPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
+            <Route path="/opportunities" element={<ProtectedLayout><OpportunitiesPage /></ProtectedLayout>} />
+            <Route path="/pathways" element={<ProtectedLayout><PathwaysPage /></ProtectedLayout>} />
+            <Route path="/mentorship" element={<ProtectedLayout><MentorshipPage /></ProtectedLayout>} />
+            <Route path="/profile" element={<ProtectedLayout><ProfilePage /></ProtectedLayout>} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={[ 'admin', 'super_admin' ]}>
+                  <AppLayout>
+                    <AdminPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+        <Footer />
+      </div>
     </>
   )
 }

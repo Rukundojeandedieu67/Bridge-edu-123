@@ -60,7 +60,7 @@ function OpportunityCard({ opportunity, isAdmin, onEdit, onDelete, onView, onApp
         ) : null}
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap">
         {onView ? (
           <button
             type="button"
@@ -95,6 +95,17 @@ function OpportunityCard({ opportunity, isAdmin, onEdit, onDelete, onView, onApp
           <span className="rounded-lg bg-emerald-100 px-3 py-1.5 text-sm font-semibold text-emerald-700">
             Applied
           </span>
+        ) : null}
+
+        {opportunity.external_link && !onView ? (
+          <a
+            href={opportunity.external_link}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+          >
+            Open link
+          </a>
         ) : null}
 
         {isAdmin ? (

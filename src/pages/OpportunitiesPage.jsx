@@ -10,7 +10,7 @@ const categoryOptions = ['all', 'scholarship', 'bootcamp', 'micro_task', 'grant'
 
 function OpportunitiesPage() {
   const { user } = useAuth()
-  const isAdmin = user?.role === 'admin'
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin'
 
   const [category, setCategory] = useState('all')
   const [region, setRegion] = useState('')
@@ -99,6 +99,15 @@ function OpportunitiesPage() {
 
   const closeDetails = () => {
     setSelectedOpportunity(null)
+  }
+
+  const canApplyToOpportunity = (opportunity) => {
+    const role = user?.role
+    if (!role || isAdmin) return false
+    if (role === 'student' || role === 'mentor') {
+      return !appliedOpportunityIds.has(opportunity.id)
+    }
+    return false
   }
 
   const handleApply = async (opportunity) => {
@@ -229,8 +238,8 @@ function OpportunitiesPage() {
                 onEdit={openEditModal}
                 onDelete={handleDelete}
                 onView={openDetails}
-                onApply={user?.role === 'student' ? handleApply : null}
-                canApply={!isAdmin && !appliedOpportunityIds.has(opportunity.id)}
+                onApply={canApplyToOpportunity(opportunity) ? handleApply : null}
+                canApply={canApplyToOpportunity(opportunity)}
                 isApplying={isCreating}
               />
             ))}

@@ -74,7 +74,7 @@ function MentorshipPage() {
   const role = (user?.role ?? 'student').toLowerCase()
   const isStudent = role === 'student'
   const isMentor = role === 'mentor'
-  const isAdmin = role === 'admin'
+  const isAdmin = role === 'admin' || role === 'super_admin'
 
   const {
     mentors,
@@ -155,7 +155,7 @@ function MentorshipPage() {
             </div>
 
             <div className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
-              {isStudent ? 'Student view' : isMentor ? 'Mentor view' : isAdmin ? 'Admin view' : 'Mentorship'}
+              {isStudent ? 'Student view' : isMentor ? 'Mentor view' : role === 'super_admin' ? 'Super Admin view' : isAdmin ? 'Admin view' : 'Mentorship'}
             </div>
           </div>
         </section>
