@@ -23,7 +23,7 @@ function AppShell({ children }) {
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">BridgeEdu Rwanda</p>
             <p className="mt-1 text-sm text-slate-600">
-              {user?.full_name || 'Signed in'} • {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Member'}
+              {user?.full_name || 'Signed in'}{user?.role && user.role !== 'student' ? ` • ${user.role.replace('_', ' ')}` : ''}
             </p>
           </div>
 

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import FormError from '../components/FormError.jsx'
 import FormInput from '../components/FormInput.jsx'
@@ -14,6 +14,7 @@ const loginSchema = z.object({
 
 function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login } = useAuth()
   const [submitError, setSubmitError] = useState('')
 
@@ -35,7 +36,15 @@ function LoginPage() {
     try {
       const payload = await login(values)
       const role = payload?.user?.role || 'student'
-      navigate(role === 'admin' || role === 'super_admin' ? '/admin' : '/opportunities')
+      const redirectPath = new URLSearchParams(location.search).get('redirect')
+
+      if (redirectPath?.startsWith('http://') || redirectPath?.startsWith('https://')) {
+        window.open(redirectPath, '_blank', 'noopener,noreferrer')
+        navigate('/opportunities')
+        return
+      }
+
+      navigate(redirectPath || (role === 'admin' || role === 'super_admin' ? '/admin' : '/opportunities'))
     } catch (error) {
       const message = error?.response?.data?.message || 'Unable to sign in. Please try again.'
       setSubmitError(message)

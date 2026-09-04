@@ -6,12 +6,13 @@ import {
   updateApplication,
 } from '../api/applications'
 
-export function useOpportunityApplications() {
+export function useOpportunityApplications({ enabled = true } = {}) {
   const queryClient = useQueryClient()
 
   const applicationsQuery = useQuery({
     queryKey: ['opportunity-applications'],
     queryFn: () => getApplications(),
+    enabled,
   })
 
   const invalidateApplications = async () => {

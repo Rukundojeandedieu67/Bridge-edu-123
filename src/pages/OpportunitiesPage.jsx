@@ -1,16 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import OpportunityCard from '../components/OpportunityCard.jsx'
 import OpportunityDetailsModal from '../components/OpportunityDetailsModal.jsx'
 import OpportunityFormModal from '../components/OpportunityFormModal.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useOpportunityApplications } from '../hooks/useOpportunityApplications.js'
 import { useOpportunities } from '../hooks/useOpportunities.js'
+import { useSupportSettings } from '../hooks/useSupportSettings.js'
 
 const categoryOptions = ['all', 'scholarship', 'bootcamp', 'micro_task', 'grant']
 
 function OpportunitiesPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin'
+  const { settings: supportSettings } = useSupportSettings()
 
   const [category, setCategory] = useState('all')
   const [region, setRegion] = useState('')
@@ -22,6 +26,7 @@ function OpportunitiesPage() {
   const [editingOpportunity, setEditingOpportunity] = useState(null)
   const [selectedOpportunity, setSelectedOpportunity] = useState(null)
   const [applicationFeedback, setApplicationFeedback] = useState('')
+  const [verificationFeedback, setVerificationFeedback] = useState('')
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -55,14 +60,17 @@ function OpportunitiesPage() {
   } = useOpportunities(filters)
   const {
     applications,
-    createApplication,
-    isCreating,
-  } = useOpportunityApplications()
+  } = useOpportunityApplications({ enabled: Boolean(user) })
 
   const list = opportunities?.data ?? []
   const meta = opportunities?.meta ?? {}
   const currentPage = meta.current_page ?? 1
   const lastPage = meta.last_page ?? 1
+  const whatsappNumber = String(supportSettings.whatsapp_number ?? '').replace(/[^0-9]/g, '')
+  const supportUserName = user?.full_name || user?.name || 'a BridgeEdu visitor'
+  const getWhatsappHelpUrl = (opportunity) => whatsappNumber
+    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Hello, I am ${supportUserName}. I need help on ${opportunity.title}.`)}`
+    : null
   const appliedOpportunityIds = useMemo(() => new Set((applications ?? []).map((application) => application.opportunity?.id ?? application.opportunity_id)), [applications])
 
   const openCreateModal = () => {
@@ -93,6 +101,18 @@ function OpportunitiesPage() {
     await deleteOpportunity(id)
   }
 
+  const handleToggleVerification = async (opportunity) => {
+    setVerificationFeedback('')
+
+    try {
+      const verified = opportunity.is_verified ?? opportunity.verified ?? opportunity.verification_status === 'verified'
+      await updateOpportunity({ id: opportunity.id, data: { is_verified: !verified } })
+      setVerificationFeedback(`${opportunity.title} is now ${verified ? 'unverified' : 'verified'}.`)
+    } catch (error) {
+      setVerificationFeedback(error?.response?.data?.message || 'Unable to change the verification status.')
+    }
+  }
+
   const openDetails = (opportunity) => {
     setSelectedOpportunity(opportunity)
   }
@@ -110,16 +130,18 @@ function OpportunitiesPage() {
     return false
   }
 
-  const handleApply = async (opportunity) => {
-    setApplicationFeedback('')
-
-    try {
-      await createApplication({ opportunity_id: opportunity.id, cover_letter: '' })
-      setApplicationFeedback(`Application submitted for ${opportunity.title}.`)
-    } catch (error) {
-      const message = error?.response?.data?.message || 'Unable to submit your application right now.'
-      setApplicationFeedback(message)
+  const handleApply = (opportunity) => {
+    if (opportunity.external_link) {
+      window.open(opportunity.external_link, '_blank', 'noopener,noreferrer')
+      return
     }
+
+    navigate(`/opportunities/${opportunity.id}/apply`)
+  }
+
+  const handleGuestApply = (opportunity) => {
+    const destination = opportunity?.external_link || `/opportunities/${opportunity.id}/apply`
+    navigate(`/login?redirect=${encodeURIComponent(destination)}`)
   }
 
   return (
@@ -146,6 +168,18 @@ function OpportunitiesPage() {
           {applicationFeedback ? (
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
               {applicationFeedback}
+            </div>
+          ) : null}
+
+          {!user ? (
+            <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-700">
+              Browse freely. <Link to="/login" className="font-semibold underline">Sign in</Link> to apply.
+            </div>
+          ) : null}
+
+          {verificationFeedback ? (
+            <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-700">
+              {verificationFeedback}
             </div>
           ) : null}
 
@@ -235,12 +269,14 @@ function OpportunitiesPage() {
                 key={opportunity.id}
                 opportunity={opportunity}
                 isAdmin={isAdmin}
+                requiresLogin={!user}
+                whatsappHelpUrl={getWhatsappHelpUrl(opportunity)}
                 onEdit={openEditModal}
                 onDelete={handleDelete}
+                onToggleVerification={handleToggleVerification}
                 onView={openDetails}
-                onApply={canApplyToOpportunity(opportunity) ? handleApply : null}
-                canApply={canApplyToOpportunity(opportunity)}
-                isApplying={isCreating}
+                onApply={isAdmin ? null : user ? handleApply : handleGuestApply}
+                canApply={user ? canApplyToOpportunity(opportunity) : true}
               />
             ))}
           </div>
@@ -282,6 +318,8 @@ function OpportunitiesPage() {
           opportunity={selectedOpportunity}
           isOpen={Boolean(selectedOpportunity)}
           onClose={closeDetails}
+          onApply={isAdmin ? null : user ? handleApply : handleGuestApply}
+          requiresLogin={!user}
         />
       </div>
     </main>

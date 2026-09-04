@@ -13,7 +13,6 @@ const registerSchema = z
     email: z.string().email('Please enter a valid email address.'),
     password: z.string().min(8, 'Password must be at least 8 characters long.'),
     password_confirmation: z.string().min(1, 'Please confirm your password.'),
-    role: z.enum(['student', 'mentor', 'admin']),
   })
   .refine((values) => values.password === values.password_confirmation, {
     message: 'Passwords do not match.',
@@ -36,7 +35,6 @@ function RegisterPage() {
       email: '',
       password: '',
       password_confirmation: '',
-      role: 'student',
     },
   })
 
@@ -45,8 +43,7 @@ function RegisterPage() {
 
     try {
       const payload = await registerUser(values)
-      const role = payload?.user?.role || 'student'
-      navigate(role === 'admin' || role === 'super_admin' ? '/admin' : '/opportunities')
+      navigate('/opportunities')
     } catch (error) {
       const message = error?.response?.data?.message || 'Unable to create your account. Please try again.'
       setSubmitError(message)
@@ -59,7 +56,7 @@ function RegisterPage() {
         <div className="mb-6 text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">BridgeEdu Rwanda</p>
           <h1 className="mt-2 text-2xl font-bold text-slate-900">Create account</h1>
-          <p className="mt-2 text-sm text-slate-600">Join the platform as a student or mentor.</p>
+          <p className="mt-2 text-sm text-slate-600">Create your student account to access BridgeEdu opportunities.</p>
         </div>
 
         <FormError message={submitError} />
@@ -103,27 +100,6 @@ function RegisterPage() {
             register={register}
             error={errors.password_confirmation?.message}
           />
-
-          <fieldset className="space-y-2">
-            <legend className="text-sm font-medium text-slate-700">Role</legend>
-            <div className="flex flex-wrap gap-4 rounded-lg border border-slate-300 bg-slate-50 px-3 py-3">
-              <label className="flex items-center gap-2 text-sm text-slate-700">
-                <input type="radio" value="student" {...register('role')} />
-                Student
-              </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
-                <input type="radio" value="mentor" {...register('role')} />
-                Mentor
-              </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
-                <input type="radio" value="admin" {...register('role')} />
-                Admin
-              </label>
-            </div>
-            {errors.role?.message ? (
-              <span className="block text-xs text-rose-600">{errors.role.message}</span>
-            ) : null}
-          </fieldset>
 
           <button
             type="submit"

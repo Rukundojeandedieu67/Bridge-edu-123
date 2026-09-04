@@ -70,7 +70,7 @@ function ProfilePage() {
   const profileFields = [
     { label: 'Full name', value: user?.full_name || user?.name || 'N/A' },
     { label: 'Email', value: user?.email || 'N/A' },
-    { label: 'Role', value: user?.role ? String(user.role).charAt(0).toUpperCase() + String(user.role).slice(1) : 'N/A' },
+    ...(user?.role && user.role !== 'student' ? [{ label: 'Role', value: String(user.role).replace('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()) }] : []),
     { label: 'District', value: user?.district || 'N/A' },
     { label: 'Sector', value: user?.sector || 'N/A' },
     { label: 'Education level', value: user?.education_level || 'N/A' },

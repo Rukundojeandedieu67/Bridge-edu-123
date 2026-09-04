@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useUsers } from '../hooks/useUsers.js'
 import { useMentorship } from '../hooks/useMentorship.js'
 import { useOpportunities } from '../hooks/useOpportunities.js'
 import { usePathways } from '../hooks/usePathways.js'
+import { useSupportSettings } from '../hooks/useSupportSettings.js'
 
 const emptyUserForm = {
   full_name: '',
@@ -19,6 +20,7 @@ const emptyUserForm = {
 
 function AdminPage() {
   const { user } = useAuth()
+  const isSuperAdmin = user?.role === 'super_admin'
   const [selectedMentor, setSelectedMentor] = useState({})
   const [updatingRequestId, setUpdatingRequestId] = useState(null)
   const [adminError, setAdminError] = useState('')
@@ -26,6 +28,8 @@ function AdminPage() {
   const [editingUserId, setEditingUserId] = useState(null)
   const [userFormError, setUserFormError] = useState('')
   const [userFormSuccess, setUserFormSuccess] = useState('')
+  const [supportForm, setSupportForm] = useState({ whatsapp_number: '', support_email: '', support_message: '', announcement_enabled: false, announcement_text: '', ad_enabled: true, ad_title: '', ad_message: '' })
+  const [supportFeedback, setSupportFeedback] = useState('')
 
   const {
     users,
@@ -50,11 +54,28 @@ function AdminPage() {
   } = useMentorship()
   const { opportunities, isLoading: isLoadingOpportunities } = useOpportunities({ page: 1 })
   const { pathways, isLoading: isLoadingPathways } = usePathways()
+  const { settings: supportSettings, updateSettings, isUpdating: isUpdatingSupport } = useSupportSettings()
+
+  useEffect(() => {
+    setSupportForm({
+      whatsapp_number: supportSettings.whatsapp_number ?? '',
+      support_email: supportSettings.support_email ?? '',
+      support_message: supportSettings.support_message ?? '',
+      announcement_enabled: Boolean(supportSettings.announcement_enabled),
+      announcement_text: supportSettings.announcement_text ?? '',
+      ad_enabled: Boolean(supportSettings.ad_enabled),
+      ad_title: supportSettings.ad_title ?? '',
+      ad_message: supportSettings.ad_message ?? '',
+    })
+  }, [supportSettings])
 
   const activeUsers = useMemo(() => users ?? [], [users])
   const totalOpportunities = opportunities?.meta?.total ?? opportunities?.data?.length ?? 0
   const totalPathways = pathways?.data?.length ?? 0
   const totalRequests = mentorshipRequests?.length ?? 0
+  const latestOpportunities = useMemo(() => [...(opportunities?.data ?? [])].sort((first, second) => new Date(second.created_at) - new Date(first.created_at)).slice(0, 3), [opportunities])
+  const latestPathways = useMemo(() => [...(pathways?.data ?? [])].sort((first, second) => new Date(second.created_at) - new Date(first.created_at)).slice(0, 3), [pathways])
+  const latestRequests = useMemo(() => [...mentorshipRequests].sort((first, second) => new Date(second.created_at) - new Date(first.created_at)).slice(0, 3), [mentorshipRequests])
 
   const mentorOptions = useMemo(() => mentors ?? [], [mentors])
   const assignedMentorId = (request) => request?.mentor?.id ?? request?.mentor_id
@@ -173,6 +194,18 @@ function AdminPage() {
     }
   }
 
+  const handleSupportSubmit = async (event) => {
+    event.preventDefault()
+    setSupportFeedback('')
+
+    try {
+      await updateSettings(supportForm)
+      setSupportFeedback('Support contact details updated.')
+    } catch (error) {
+      setSupportFeedback(error?.response?.data?.message || 'Unable to update support details.')
+    }
+  }
+
   return (
     <main className="min-h-screen bg-slate-100 px-3 py-4 sm:px-6 sm:py-6">
       <div className="mx-auto max-w-6xl space-y-6">
@@ -248,12 +281,12 @@ function AdminPage() {
             </div>
           </div>
 
-          {user?.role === 'super_admin' ? (
+          {user?.role === 'admin' || isSuperAdmin ? (
             <form onSubmit={handleUserSubmit} className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 className="text-base font-semibold text-slate-900">{editingUserId ? 'Edit user' : 'Create user'}</h3>
-                  <p className="text-sm text-slate-600">Super-admins can manage access for the platform.</p>
+                  <p className="text-sm text-slate-600">{isSuperAdmin ? 'Super-admins can manage every platform role.' : 'Admins can manage student and mentor accounts.'}</p>
                 </div>
                 {editingUserId ? (
                   <button type="button" onClick={resetUserForm} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
@@ -287,8 +320,12 @@ function AdminPage() {
                   <select value={userForm.role} onChange={(event) => setUserForm((current) => ({ ...current, role: event.target.value }))} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
                     <option value="student">Student</option>
                     <option value="mentor">Mentor</option>
-                    <option value="admin">Admin</option>
-                    <option value="super_admin">Super admin</option>
+                    {isSuperAdmin ? (
+                      <>
+                        <option value="admin">Admin</option>
+                        <option value="super_admin">Super admin</option>
+                      </>
+                    ) : null}
                   </select>
                 </div>
                 <div>
@@ -354,6 +391,79 @@ function AdminPage() {
               </table>
             </div>
           )}
+        </section>
+
+        {user?.role === 'admin' || isSuperAdmin ? (
+          <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="mb-5">
+              <h2 className="text-lg font-semibold text-slate-900">Support contact</h2>
+              <p className="mt-1 text-sm text-slate-600">Set the contact details and announcements shown across the platform.</p>
+            </div>
+            {supportFeedback ? <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-700">{supportFeedback}</div> : null}
+            <form onSubmit={handleSupportSubmit} className="grid gap-4 md:grid-cols-3">
+              <label className="text-sm font-medium text-slate-700">
+                WhatsApp number
+                <input value={supportForm.whatsapp_number} onChange={(event) => setSupportForm((current) => ({ ...current, whatsapp_number: event.target.value }))} placeholder="+250 7XX XXX XXX" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </label>
+              <label className="text-sm font-medium text-slate-700">
+                Support email
+                <input type="email" value={supportForm.support_email} onChange={(event) => setSupportForm((current) => ({ ...current, support_email: event.target.value }))} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </label>
+              <label className="text-sm font-medium text-slate-700">
+                Help message
+                <input value={supportForm.support_message} onChange={(event) => setSupportForm((current) => ({ ...current, support_message: event.target.value }))} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </label>
+              <label className="flex items-center gap-2 self-end pb-2 text-sm font-medium text-slate-700">
+                <input type="checkbox" checked={supportForm.announcement_enabled} onChange={(event) => setSupportForm((current) => ({ ...current, announcement_enabled: event.target.checked }))} />
+                Show announcement ticker
+              </label>
+              <label className="text-sm font-medium text-slate-700">
+                Awareness ad title
+                <input value={supportForm.ad_title} onChange={(event) => setSupportForm((current) => ({ ...current, ad_title: event.target.value }))} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </label>
+              <label className="text-sm font-medium text-slate-700 md:col-span-2">
+                Awareness ad message
+                <textarea rows="2" value={supportForm.ad_message} onChange={(event) => setSupportForm((current) => ({ ...current, ad_message: event.target.value }))} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </label>
+              <label className="flex items-center gap-2 self-end pb-2 text-sm font-medium text-slate-700">
+                <input type="checkbox" checked={supportForm.ad_enabled} onChange={(event) => setSupportForm((current) => ({ ...current, ad_enabled: event.target.checked }))} />
+                Show awareness ad
+              </label>
+              <button type="submit" disabled={isUpdatingSupport} className="w-fit rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60">
+                {isUpdatingSupport ? 'Saving...' : 'Save support details'}
+              </button>
+            </form>
+          </section>
+        ) : null}
+
+        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="mb-5">
+            <h2 className="text-lg font-semibold text-slate-900">Latest platform activity</h2>
+            <p className="mt-1 text-sm text-slate-600">Keep track of the newest opportunities, pathways, and mentorship requests.</p>
+          </div>
+          <div className="grid gap-4 lg:grid-cols-3">
+            <div className="rounded-2xl border border-slate-200 p-4">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-500">Opportunities</h3>
+              <ul className="mt-3 space-y-3">
+                {latestOpportunities.map((opportunity) => <li key={opportunity.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0"><p className="font-semibold text-slate-900">{opportunity.title}</p><p className="mt-1 text-xs text-slate-500">{opportunity.is_verified ? 'Verified' : 'Awaiting verification'}</p></li>)}
+                {!latestOpportunities.length ? <li className="text-sm text-slate-500">No opportunities yet.</li> : null}
+              </ul>
+            </div>
+            <div className="rounded-2xl border border-slate-200 p-4">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-500">Pathways</h3>
+              <ul className="mt-3 space-y-3">
+                {latestPathways.map((pathway) => <li key={pathway.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0"><p className="font-semibold text-slate-900">{pathway.title}</p><p className="mt-1 text-xs text-slate-500">{pathway.steps?.length ?? 0} learning steps</p></li>)}
+                {!latestPathways.length ? <li className="text-sm text-slate-500">No pathways yet.</li> : null}
+              </ul>
+            </div>
+            <div className="rounded-2xl border border-slate-200 p-4">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-500">Mentorship</h3>
+              <ul className="mt-3 space-y-3">
+                {latestRequests.map((request) => <li key={request.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0"><p className="font-semibold text-slate-900">{request.topic_of_interest}</p><p className="mt-1 text-xs capitalize text-slate-500">{request.status} · {request.student?.full_name || 'Student'}</p></li>)}
+                {!latestRequests.length ? <li className="text-sm text-slate-500">No mentorship requests yet.</li> : null}
+              </ul>
+            </div>
+          </div>
         </section>
 
         <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">

@@ -21,7 +21,7 @@ function formatDeadline(deadline) {
   }).format(parsed)
 }
 
-function OpportunityCard({ opportunity, isAdmin, onEdit, onDelete, onView, onApply, canApply, isApplying }) {
+function OpportunityCard({ opportunity, isAdmin, requiresLogin, whatsappHelpUrl, onEdit, onDelete, onToggleVerification, onView, onApply, canApply, isApplying }) {
   const description = opportunity.description?.trim() || 'No description provided.'
   const truncatedDescription = description.length > 150 ? `${description.slice(0, 147)}...` : description
   const verified = opportunity.is_verified ?? opportunity.verified ?? opportunity.verification_status === 'verified'
@@ -87,7 +87,7 @@ function OpportunityCard({ opportunity, isAdmin, onEdit, onDelete, onView, onApp
             disabled={isApplying}
             className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
           >
-            {isApplying ? 'Applying…' : 'Apply now'}
+            {isApplying ? 'Applying…' : requiresLogin ? 'Sign in to apply' : 'Apply now'}
           </button>
         ) : null}
 
@@ -108,8 +108,27 @@ function OpportunityCard({ opportunity, isAdmin, onEdit, onDelete, onView, onApp
           </a>
         ) : null}
 
+        {whatsappHelpUrl ? (
+          <a
+            href={whatsappHelpUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-lg border border-emerald-300 px-3 py-1.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
+          >
+            <span aria-hidden="true">◉</span>
+            Need help?
+          </a>
+        ) : null}
+
         {isAdmin ? (
           <div className="flex flex-wrap gap-2 sm:ml-auto">
+            <button
+              type="button"
+              onClick={() => onToggleVerification(opportunity)}
+              className={`rounded-lg border px-3 py-1.5 text-sm font-medium ${verified ? 'border-amber-300 text-amber-700 hover:bg-amber-50' : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'}`}
+            >
+              {verified ? 'Mark unverified' : 'Verify'}
+            </button>
             <button
               type="button"
               onClick={() => onEdit(opportunity)}

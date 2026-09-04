@@ -94,9 +94,11 @@ function Navbar() {
         <div className="hidden items-center gap-3 md:flex">
           <div className="text-right">
             <p className="text-sm font-semibold text-slate-900">{user?.full_name || 'User'}</p>
-            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${badgeClass}`}>
-              {roleLabel}
-            </span>
+            {role !== 'student' ? (
+              <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${badgeClass}`}>
+                {roleLabel}
+              </span>
+            ) : null}
           </div>
           <button
             type="button"
@@ -140,9 +142,11 @@ function Navbar() {
 
             <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <p className="text-sm font-semibold text-slate-900">{user?.full_name || 'User'}</p>
-              <span className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${badgeClass}`}>
-                {role}
-              </span>
+              {role !== 'student' ? (
+                <span className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${badgeClass}`}>
+                  {roleLabel}
+                </span>
+              ) : null}
 
               <NavLink
                 to="/profile"

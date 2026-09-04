@@ -4,6 +4,10 @@ export const getOpportunities = async (params = {}) => {
   const response = await apiClient.get('/opportunities', { params })
   return response.data
 }
+export const getOpportunity = async (id) => {
+  const response = await apiClient.get(`/opportunities/${id}`)
+  return response.data
+}
 
 export const createOpportunity = async (data) => {
   const response = await apiClient.post('/opportunities', data)
