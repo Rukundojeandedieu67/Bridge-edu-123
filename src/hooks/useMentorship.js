@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useAuth } from '../context/AuthContext.jsx'
 import {
   createMentorshipRequest,
   getMentors,
@@ -7,6 +8,7 @@ import {
 } from '../api/mentorship'
 
 export function useMentorship() {
+  const { isAuthenticated } = useAuth()
   const queryClient = useQueryClient()
 
   const mentorsQuery = useQuery({
@@ -17,6 +19,7 @@ export function useMentorship() {
   const requestsQuery = useQuery({
     queryKey: ['mentorship-requests'],
     queryFn: getMentorshipRequests,
+    enabled: isAuthenticated,
   })
 
   const createMutation = useMutation({

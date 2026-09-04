@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import AdminNavigation from '../components/AdminNavigation.jsx'
 import { useSupportSettings } from '../hooks/useSupportSettings.js'
+import { useAuth } from '../context/AuthContext.jsx'
 
 function AdminSupportPage() {
   const { settings, updateSettings, isUpdating } = useSupportSettings()
-  const [form, setForm] = useState({ whatsapp_number: '', support_email: '', support_message: '', contact_location: '', announcement_enabled: false, ad_enabled: true, ad_title: '', ad_message: '' })
+  const { user } = useAuth()
+  const isSuperAdmin = user?.role === 'super_admin'
+  const [form, setForm] = useState({ whatsapp_number: '', support_email: '', support_message: '', contact_location: '', announcement_enabled: false, ad_enabled: true, ad_title: '', ad_message: '', smtp_enabled: false, smtp_host: '', smtp_port: 587, smtp_username: '', smtp_password: '', smtp_encryption: 'tls', smtp_from_email: '', smtp_from_name: 'BridgeEdu Rwanda' })
   const [feedback, setFeedback] = useState('')
 
   useEffect(() => {
@@ -17,6 +20,14 @@ function AdminSupportPage() {
       ad_enabled: Boolean(settings.ad_enabled),
       ad_title: settings.ad_title ?? '',
       ad_message: settings.ad_message ?? '',
+      smtp_enabled: Boolean(settings.smtp_enabled),
+      smtp_host: settings.smtp_host ?? '',
+      smtp_port: settings.smtp_port ?? 587,
+      smtp_username: settings.smtp_username ?? '',
+      smtp_password: '',
+      smtp_encryption: settings.smtp_encryption ?? 'tls',
+      smtp_from_email: settings.smtp_from_email ?? '',
+      smtp_from_name: settings.smtp_from_name ?? 'BridgeEdu Rwanda',
     })
   }, [settings])
 
@@ -26,7 +37,13 @@ function AdminSupportPage() {
     event.preventDefault()
     setFeedback('')
     try {
-      await updateSettings({ ...form, announcement_text: '' })
+      const { smtp_enabled, smtp_host, smtp_port, smtp_username, smtp_password, smtp_encryption, smtp_from_email, smtp_from_name, ...supportForm } = form
+      const payload = { ...supportForm, announcement_text: '' }
+      if (isSuperAdmin) {
+        Object.assign(payload, { smtp_enabled, smtp_host, smtp_port, smtp_username, smtp_encryption, smtp_from_email, smtp_from_name })
+        if (smtp_password) payload.smtp_password = smtp_password
+      }
+      await updateSettings(payload)
       setFeedback('Support and advertising settings saved.')
     } catch (error) {
       setFeedback(error?.response?.data?.message || 'Unable to save settings.')
@@ -54,6 +71,22 @@ function AdminSupportPage() {
             <label className="text-sm font-semibold text-slate-800 md:col-span-2">Awareness ad message<textarea rows="3" value={form.ad_message} onChange={(event) => updateField('ad_message', event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
             <button type="submit" disabled={isUpdating} className="w-fit rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60">{isUpdating ? 'Saving...' : 'Save settings'}</button>
           </form>
+          {isSuperAdmin ? (
+            <div className="mt-8 border-t border-slate-200 pt-6">
+              <h2 className="text-lg font-bold text-slate-900">SMTP email delivery</h2>
+              <p className="mt-1 text-sm text-slate-600">Configure this to receive new mentor applications by email. The password is encrypted and never shown after saving.</p>
+              <div className="mt-5 grid gap-5 md:grid-cols-2">
+                <label className="flex items-center gap-2 text-sm font-semibold text-slate-800"><input type="checkbox" checked={form.smtp_enabled} onChange={(event) => updateField('smtp_enabled', event.target.checked)} /> Enable SMTP notifications</label>
+                <label className="text-sm font-semibold text-slate-800">Encryption<select value={form.smtp_encryption} onChange={(event) => updateField('smtp_encryption', event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal"><option value="tls">TLS</option><option value="ssl">SSL</option><option value="none">None</option></select></label>
+                <label className="text-sm font-semibold text-slate-800">SMTP host<input required={form.smtp_enabled} value={form.smtp_host} onChange={(event) => updateField('smtp_host', event.target.value)} placeholder="smtp.example.com" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
+                <label className="text-sm font-semibold text-slate-800">SMTP port<input required={form.smtp_enabled} type="number" min="1" max="65535" value={form.smtp_port} onChange={(event) => updateField('smtp_port', event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
+                <label className="text-sm font-semibold text-slate-800">SMTP username<input value={form.smtp_username} onChange={(event) => updateField('smtp_username', event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
+                <label className="text-sm font-semibold text-slate-800">SMTP password<input type="password" placeholder={settings.smtp_password_configured ? 'Saved password (leave blank to keep)' : 'SMTP password'} value={form.smtp_password} onChange={(event) => updateField('smtp_password', event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
+                <label className="text-sm font-semibold text-slate-800">From email<input required={form.smtp_enabled} type="email" value={form.smtp_from_email} onChange={(event) => updateField('smtp_from_email', event.target.value)} placeholder="noreply@example.com" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
+                <label className="text-sm font-semibold text-slate-800">From name<input required={form.smtp_enabled} value={form.smtp_from_name} onChange={(event) => updateField('smtp_from_name', event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
+              </div>
+            </div>
+          ) : null}
         </section>
       </div>
     </main>

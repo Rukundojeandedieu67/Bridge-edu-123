@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useMentorship } from '../hooks/useMentorship.js'
@@ -71,8 +72,8 @@ function MentorshipPage() {
   const [submitError, setSubmitError] = useState('')
   const [updatingRequestId, setUpdatingRequestId] = useState(null)
 
-  const role = (user?.role ?? 'student').toLowerCase()
-  const isStudent = role === 'student'
+  const role = (user?.role ?? '').toLowerCase()
+  const isStudent = Boolean(user) && role === 'student'
   const isMentor = role === 'mentor'
   const isAdmin = role === 'admin' || role === 'super_admin'
 
@@ -160,7 +161,31 @@ function MentorshipPage() {
           </div>
         </section>
 
-        {isStudent ? (
+        {!user ? (
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="mb-5">
+              <h2 className="text-xl font-semibold text-slate-900">Find a mentor</h2>
+              <p className="mt-1 text-sm text-slate-600">Browse verified mentors, then sign in when you are ready to request support.</p>
+            </div>
+            {isLoadingMentors ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, index) => <div key={index} className="animate-pulse rounded-xl border border-slate-200 bg-slate-50 p-4" />)}
+              </div>
+            ) : mentors.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-600">No mentors available right now.</div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {mentors.map((mentor) => (
+                  <article key={mentor.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="font-semibold text-slate-900">{mentor.full_name}</p>
+                    <p className="mt-1 text-sm text-slate-600">{mentor.email}</p>
+                  </article>
+                ))}
+              </div>
+            )}
+            <Link to="/login?redirect=%2Fmentorship" className="mt-5 inline-flex rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">Sign in to request mentorship</Link>
+          </section>
+        ) : isStudent ? (
           <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
             <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
               <div className="mb-5 flex items-center justify-between">

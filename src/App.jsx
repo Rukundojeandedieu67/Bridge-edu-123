@@ -12,6 +12,7 @@ import PathwaysPage from './pages/PathwaysPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
 import AdminPage from './pages/AdminPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
+import BecomeMentorPage from './pages/BecomeMentorPage.jsx'
 import SupportWidget from './components/SupportWidget.jsx'
 import AnnouncementTicker from './components/AnnouncementTicker.jsx'
 import AwarenessAd from './components/AwarenessAd.jsx'
@@ -38,10 +39,10 @@ function PublicLayout({ children }) {
 }
 
 function App() {
-  const { isLoading, isAuthenticated } = useAuth()
+  const { isLoading } = useAuth()
   const location = useLocation()
   const hideNavbarOn = ['/login', '/register']
-  const showNavbar = isAuthenticated && !hideNavbarOn.some((path) => location.pathname.startsWith(path))
+  const showNavbar = !hideNavbarOn.some((path) => location.pathname.startsWith(path))
 
   if (isLoading) {
     return (
@@ -62,6 +63,7 @@ function App() {
             <Route path="/" element={<RootRedirect />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/become-a-mentor" element={<PublicLayout><BecomeMentorPage /></PublicLayout>} />
 
             <Route path="/opportunities" element={<PublicLayout><OpportunitiesPage /></PublicLayout>} />
             <Route
@@ -74,8 +76,8 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/pathways" element={<ProtectedLayout><PathwaysPage /></ProtectedLayout>} />
-            <Route path="/mentorship" element={<ProtectedLayout><MentorshipPage /></ProtectedLayout>} />
+            <Route path="/pathways" element={<PublicLayout><PathwaysPage /></PublicLayout>} />
+            <Route path="/mentorship" element={<PublicLayout><MentorshipPage /></PublicLayout>} />
             <Route path="/profile" element={<ProtectedLayout><ProfilePage /></ProtectedLayout>} />
             <Route
               path="/admin"

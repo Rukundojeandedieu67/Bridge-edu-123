@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import logo from '../assets/bridge-edu.png'
 
@@ -92,15 +92,15 @@ function Navbar() {
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
-          <div className="text-right">
-            <p className="text-sm font-semibold text-slate-900">{user?.full_name || 'User'}</p>
+          {user ? <div className="text-right">
+            <p className="text-sm font-semibold text-slate-900">{user.full_name || 'User'}</p>
             {role !== 'student' ? (
               <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${badgeClass}`}>
                 {roleLabel}
               </span>
             ) : null}
-          </div>
-          <button
+          </div> : null}
+          {user ? <button
             type="button"
             onClick={handleLogout}
             className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
@@ -108,6 +108,7 @@ function Navbar() {
             <span aria-hidden="true">⇦</span>
             Logout
           </button>
+          : <Link to="/login" className="rounded-full bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">Sign in</Link>}
         </div>
 
         <button
@@ -141,6 +142,12 @@ function Navbar() {
             ))}
 
             <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              {!user ? (
+                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="block rounded-lg bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white">
+                  Sign in
+                </Link>
+              ) : null}
+              {user ? <>
               <p className="text-sm font-semibold text-slate-900">{user?.full_name || 'User'}</p>
               {role !== 'student' ? (
                 <span className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${badgeClass}`}>
@@ -182,6 +189,7 @@ function Navbar() {
                 <span aria-hidden="true">⇦</span>
                 Logout
               </button>
+              </> : null}
             </div>
           </div>
         </div>

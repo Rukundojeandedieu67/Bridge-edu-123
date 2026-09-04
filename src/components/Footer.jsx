@@ -57,7 +57,7 @@ function Footer() {
           <div>
             <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-200">Community</h2>
             <ul className="mt-4 space-y-3 text-sm">
-              <li><Link to="/mentorship" className="transition hover:text-white">Become a mentor</Link></li>
+              <li><Link to="/become-a-mentor" className="transition hover:text-white">Become a mentor</Link></li>
               <li><Link to="/register" className="transition hover:text-white">Create an account</Link></li>
               <li><Link to="/login" className="transition hover:text-white">Sign in</Link></li>
             </ul>
