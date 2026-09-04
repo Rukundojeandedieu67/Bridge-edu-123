@@ -22,13 +22,7 @@ import AdminSupportPage from './pages/AdminSupportPage.jsx'
 import AdminAdsPage from './pages/AdminAdsPage.jsx'
 
 function RootRedirect() {
-  const { isAuthenticated } = useAuth()
-
-  return isAuthenticated ? (
-    <Navigate to="/opportunities" replace />
-  ) : (
-    <Navigate to="/opportunities" replace />
-  )
+  return <Navigate to="/opportunities" replace />
 }
 
 function ProtectedLayout({ children }) {
