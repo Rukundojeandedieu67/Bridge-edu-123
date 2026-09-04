@@ -2,7 +2,11 @@ import axios from 'axios'
 
 const AUTH_STORAGE_KEY = 'bridgeedu-auth-state'
 
-const rawBaseURL = String(import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1').trim()
+const configuredBaseURL = String(import.meta.env.VITE_API_URL || '').trim()
+const defaultBaseURL = import.meta.env.PROD
+  ? 'https://bridge-edu-rwanda.onrender.com/api/v1'
+  : 'http://localhost:8000/api/v1'
+const rawBaseURL = configuredBaseURL || defaultBaseURL
 
 const apiClient = axios.create({
   baseURL: rawBaseURL.replace(/\/+$/, ''),
