@@ -50,6 +50,17 @@ function AdminSupportPage() {
     }
   }
 
+  const handleSmtpSubmit = async (event) => {
+    event.preventDefault()
+    setFeedback('')
+    try {
+      await updateSettings({ ...form, announcement_text: '' })
+      setFeedback('SMTP settings saved. New mentor and newsletter notifications will use these settings.')
+    } catch (error) {
+      setFeedback(error?.response?.data?.message || 'Unable to save SMTP settings.')
+    }
+  }
+
   return (
     <main className="min-h-screen bg-slate-100 px-3 py-4 sm:px-6 sm:py-6">
       <div className="mx-auto max-w-6xl space-y-6">
@@ -73,9 +84,17 @@ function AdminSupportPage() {
           </form>
           {isSuperAdmin ? (
             <div className="mt-8 border-t border-slate-200 pt-6">
-              <h2 className="text-lg font-bold text-slate-900">SMTP email delivery</h2>
-              <p className="mt-1 text-sm text-slate-600">Configure this to receive new mentor applications by email. The password is encrypted and never shown after saving.</p>
-              <div className="mt-5 grid gap-5 md:grid-cols-2">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">SMTP email delivery</h2>
+                  <p className="mt-1 text-sm text-slate-600">These settings control mentor application and newsletter notification emails.</p>
+                </div>
+                <span className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${form.smtp_enabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                  {form.smtp_enabled ? 'SMTP enabled' : 'SMTP disabled'}
+                </span>
+              </div>
+              <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">Save valid SMTP credentials before enabling notifications. {settings.smtp_password_configured ? 'A password is already saved; leave the password field blank to keep it.' : 'No SMTP password is saved yet.'}</p>
+              <form onSubmit={handleSmtpSubmit} className="mt-5 grid gap-5 md:grid-cols-2">
                 <label className="flex items-center gap-2 text-sm font-semibold text-slate-800"><input type="checkbox" checked={form.smtp_enabled} onChange={(event) => updateField('smtp_enabled', event.target.checked)} /> Enable SMTP notifications</label>
                 <label className="text-sm font-semibold text-slate-800">Encryption<select value={form.smtp_encryption} onChange={(event) => updateField('smtp_encryption', event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal"><option value="tls">TLS</option><option value="ssl">SSL</option><option value="none">None</option></select></label>
                 <label className="text-sm font-semibold text-slate-800">SMTP host<input required={form.smtp_enabled} value={form.smtp_host} onChange={(event) => updateField('smtp_host', event.target.value)} placeholder="smtp.example.com" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
@@ -84,7 +103,8 @@ function AdminSupportPage() {
                 <label className="text-sm font-semibold text-slate-800">SMTP password<input type="password" placeholder={settings.smtp_password_configured ? 'Saved password (leave blank to keep)' : 'SMTP password'} value={form.smtp_password} onChange={(event) => updateField('smtp_password', event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
                 <label className="text-sm font-semibold text-slate-800">From email<input required={form.smtp_enabled} type="email" value={form.smtp_from_email} onChange={(event) => updateField('smtp_from_email', event.target.value)} placeholder="noreply@example.com" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
                 <label className="text-sm font-semibold text-slate-800">From name<input required={form.smtp_enabled} value={form.smtp_from_name} onChange={(event) => updateField('smtp_from_name', event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
-              </div>
+                <button type="submit" disabled={isUpdating} className="w-fit rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60">{isUpdating ? 'Saving SMTP...' : 'Save SMTP settings'}</button>
+              </form>
             </div>
           ) : null}
         </section>
