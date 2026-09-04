@@ -4,7 +4,7 @@ import { useSupportSettings } from '../hooks/useSupportSettings.js'
 
 function AdminSupportPage() {
   const { settings, updateSettings, isUpdating } = useSupportSettings()
-  const [form, setForm] = useState({ whatsapp_number: '', support_email: '', support_message: '', announcement_enabled: false, ad_enabled: true, ad_title: '', ad_message: '' })
+  const [form, setForm] = useState({ whatsapp_number: '', support_email: '', support_message: '', contact_location: '', announcement_enabled: false, ad_enabled: true, ad_title: '', ad_message: '' })
   const [feedback, setFeedback] = useState('')
 
   useEffect(() => {
@@ -12,6 +12,7 @@ function AdminSupportPage() {
       whatsapp_number: settings.whatsapp_number ?? '',
       support_email: settings.support_email ?? '',
       support_message: settings.support_message ?? '',
+      contact_location: settings.contact_location ?? '',
       announcement_enabled: Boolean(settings.announcement_enabled),
       ad_enabled: Boolean(settings.ad_enabled),
       ad_title: settings.ad_title ?? '',
@@ -45,6 +46,7 @@ function AdminSupportPage() {
             <label className="text-sm font-semibold text-slate-800">WhatsApp number<input value={form.whatsapp_number} onChange={(event) => updateField('whatsapp_number', event.target.value)} placeholder="+250 7XX XXX XXX" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
             <label className="text-sm font-semibold text-slate-800">Support email<input type="email" value={form.support_email} onChange={(event) => updateField('support_email', event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
             <label className="text-sm font-semibold text-slate-800 md:col-span-2">Chatbot welcome message<input value={form.support_message} onChange={(event) => updateField('support_message', event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
+            <label className="text-sm font-semibold text-slate-800">Contact location<input value={form.contact_location} onChange={(event) => updateField('contact_location', event.target.value)} placeholder="Huye, Rwanda" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
             <label className="flex items-center gap-2 text-sm font-semibold text-slate-800"><input type="checkbox" checked={form.announcement_enabled} onChange={(event) => updateField('announcement_enabled', event.target.checked)} /> Show live content ticker</label>
             <p className="text-sm text-slate-500">The ticker automatically lists all opportunity titles, pathways, and available mentorship.</p>
             <label className="text-sm font-semibold text-slate-800">Awareness ad title<input value={form.ad_title} onChange={(event) => updateField('ad_title', event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>

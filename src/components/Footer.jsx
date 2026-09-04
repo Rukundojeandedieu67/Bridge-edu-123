@@ -2,11 +2,17 @@ import { Link } from 'react-router-dom'
 import logo from '../assets/bridge-edu.png'
 import { useState } from 'react'
 import { useNewsletter } from '../hooks/useNewsletter.js'
+import { useSupportSettings } from '../hooks/useSupportSettings.js'
 
 function Footer() {
   const { subscribe, isSubscribing } = useNewsletter()
+  const { settings } = useSupportSettings()
   const [email, setEmail] = useState('')
   const [newsletterMessage, setNewsletterMessage] = useState('')
+  const supportEmail = settings.support_email || 'hello@bridgeedu.rw'
+  const supportMessage = settings.support_message || 'Questions about opportunities or joining the network?'
+  const contactLocation = settings.contact_location || 'Huye, Rwanda'
+  const whatsappNumber = String(settings.whatsapp_number || '').replace(/[^0-9]/g, '')
 
   const handleSubscribe = async (event) => {
     event.preventDefault()
@@ -59,11 +65,12 @@ function Footer() {
 
           <div>
             <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-200">Contact</h2>
-            <p className="mt-4 text-sm leading-6 text-slate-400">Questions about opportunities or joining the network?</p>
-            <a href="mailto:hello@bridgeedu.rw" className="mt-3 inline-block text-sm font-semibold text-cyan-300 transition hover:text-cyan-200">
-              hello@bridgeedu.rw
+            <p className="mt-4 text-sm leading-6 text-slate-400">{supportMessage}</p>
+            <a href={`mailto:${supportEmail}`} className="mt-3 inline-block text-sm font-semibold text-cyan-300 transition hover:text-cyan-200">
+              {supportEmail}
             </a>
-            <p className="mt-3 text-xs uppercase tracking-[0.16em] text-slate-500">Huye, Rwanda</p>
+            {whatsappNumber ? <a href={`https://wa.me/${whatsappNumber}`} className="mt-2 block text-sm font-semibold text-cyan-300 transition hover:text-cyan-200">WhatsApp support</a> : null}
+            <p className="mt-3 text-xs uppercase tracking-[0.16em] text-slate-500">{contactLocation}</p>
           </div>
         </div>
 
