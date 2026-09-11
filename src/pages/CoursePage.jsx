@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { completeCourseStep, enrollInCourse, getEnrollment } from '../api/enrollments.js'
@@ -36,11 +36,12 @@ function CoursePage() {
   const completedStepIds = enrollment?.completed_step_ids ?? []
   const progress = enrollment?.progress ?? 0
   const activeStepId = expandedStepId ?? steps[0]?.id
-  const activeStep = useMemo(() => steps.find((step) => step.id === activeStepId), [activeStepId, steps])
+  const activeStep = steps.find((step) => step.id === activeStepId)
+  const firstStepId = steps[0]?.id
 
   useEffect(() => {
-    if (!expandedStepId && steps[0]?.id) setExpandedStepId(steps[0].id)
-  }, [expandedStepId, steps])
+    if (!expandedStepId && firstStepId) setExpandedStepId(firstStepId)
+  }, [expandedStepId, firstStepId])
 
   if (courseQuery.isLoading) return <main className="bridge-page min-h-screen p-8 text-center text-slate-600">Loading course...</main>
   if (courseQuery.isError || !course) return <main className="bridge-page min-h-screen p-8 text-center text-rose-700">Unable to load this course.</main>
