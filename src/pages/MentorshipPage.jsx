@@ -143,19 +143,19 @@ function MentorshipPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-100 px-3 py-4 sm:px-6 sm:py-6">
+    <main className="bridge-page min-h-screen px-3 py-5 sm:px-6 sm:py-8">
       <div className="mx-auto max-w-6xl space-y-5 sm:space-y-6">
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+        <section className="bridge-hero overflow-hidden rounded-[2rem] px-5 py-7 text-white shadow-xl sm:px-9 sm:py-9">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">BridgeEdu Rwanda</p>
-              <h1 className="mt-2 text-2xl font-bold text-slate-900">Mentorship</h1>
-              <p className="mt-2 text-sm text-slate-600">
-                Connect students with mentors, manage requests, and track progress in one place.
+              <p className="bridge-kicker text-orange-300">LEARN WITH SOMEONE IN YOUR CORNER</p>
+              <h1 className="bridge-display mt-3 text-4xl font-semibold leading-tight sm:text-5xl">You do not have to figure it out alone.</h1>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-slate-200">
+                Ask better questions, learn from lived experience, and keep moving with a mentor who understands your goals.
               </p>
             </div>
 
-            <div className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
+            <div className="bridge-progress-panel rounded-full px-4 py-2 text-sm font-semibold text-white">
               {isStudent ? 'Student view' : isMentor ? 'Mentor view' : role === 'super_admin' ? 'Super Admin view' : isAdmin ? 'Admin view' : 'Mentorship'}
             </div>
           </div>

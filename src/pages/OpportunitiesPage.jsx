@@ -145,25 +145,71 @@ function OpportunitiesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-100 px-3 py-4 sm:px-6 sm:py-6">
+    <main className="bridge-page min-h-screen px-3 py-5 sm:px-6 sm:py-8">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-5 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:mb-6 sm:p-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <section className="bridge-hero mb-6 overflow-hidden rounded-[2rem] px-5 py-7 text-white shadow-xl sm:px-9 sm:py-9">
+          <div className="relative z-10 grid gap-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-center">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">BridgeEdu Rwanda</p>
-              <h1 className="mt-1 text-2xl font-bold text-slate-900">Opportunities</h1>
+              <p className="bridge-kicker text-orange-300">YOUR NEXT CHAPTER STARTS HERE</p>
+              <h1 className="bridge-display mt-3 max-w-2xl text-4xl font-semibold leading-[1.05] sm:text-6xl">
+                Learn skills.<br /><span className="text-orange-300">Find your way.</span>
+              </h1>
+              <p className="mt-5 max-w-xl text-base leading-7 text-slate-200 sm:text-lg">
+                A clear path from curiosity to opportunity, built for young people across Rwanda.
+              </p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link to="/pathways" className="bridge-primary-button inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-bold">
+                  Explore learning paths <span aria-hidden="true">↗</span>
+                </Link>
+                <a href="#opportunity-list" className="inline-flex items-center rounded-full border border-white/30 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
+                  Browse opportunities
+                </a>
+              </div>
             </div>
 
-            {isAdmin ? (
-              <button
-                type="button"
-                onClick={openCreateModal}
-                className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:w-auto"
-              >
-                + Add Opportunity
-              </button>
-            ) : null}
+            <div className="bridge-progress-panel rounded-3xl p-5 sm:p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-slate-300">Your learning pulse</p>
+                  <p className="mt-1 text-2xl font-semibold text-white">Keep the momentum</p>
+                </div>
+                <span className="rounded-full bg-orange-300 px-3 py-1 text-xs font-black text-slate-950">LIVE</span>
+              </div>
+              <div className="mt-6 grid grid-cols-3 gap-3 border-y border-white/10 py-5">
+                <div><p className="text-2xl font-semibold text-white">04</p><p className="mt-1 text-xs text-slate-400">Saved paths</p></div>
+                <div><p className="text-2xl font-semibold text-white">12</p><p className="mt-1 text-xs text-slate-400">Skills unlocked</p></div>
+                <div><p className="text-2xl font-semibold text-white">08</p><p className="mt-1 text-xs text-slate-400">New this week</p></div>
+              </div>
+              <p className="text-sm leading-6 text-slate-300">Small steps count. Pick one pathway and make progress today.</p>
+            </div>
           </div>
+        </section>
+
+        <section className="mb-7 grid gap-3 sm:grid-cols-3">
+          {[
+            { label: 'Build a foundation', detail: 'Digital basics', color: 'bg-blue-100 text-blue-900' },
+            { label: 'Find your direction', detail: 'Career pathways', color: 'bg-amber-100 text-amber-900' },
+            { label: 'Make your move', detail: 'Real opportunities', color: 'bg-orange-100 text-orange-900' },
+          ].map((track, index) => (
+            <Link key={track.label} to={index === 1 ? '/pathways' : '#opportunity-list'} className="bridge-track group rounded-2xl border border-slate-200 bg-white p-4 transition hover:-translate-y-1 hover:shadow-lg">
+              <span className={`inline-flex h-9 w-9 items-center justify-center rounded-xl text-sm font-black ${track.color}`}>0{index + 1}</span>
+              <p className="mt-4 text-base font-bold text-slate-950">{track.label}</p>
+              <p className="mt-1 text-sm text-slate-500">{track.detail} <span className="float-right text-lg transition group-hover:translate-x-1">→</span></p>
+            </Link>
+          ))}
+        </section>
+
+        <div id="opportunity-list" className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="bridge-kicker text-orange-600">CURATED FOR YOUR GROWTH</p>
+            <h2 className="bridge-display mt-1 text-3xl font-semibold text-slate-950">Opportunities worth chasing</h2>
+          </div>
+          {isAdmin ? (
+            <button type="button" onClick={openCreateModal} className="bridge-dark-button w-full rounded-full px-4 py-2.5 text-sm font-semibold sm:w-auto">+ Add Opportunity</button>
+          ) : null}
+        </div>
+
+        <div className="mb-5 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
 
           {applicationFeedback ? (
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">

@@ -5,6 +5,11 @@ export const getPathways = async () => {
   return response.data
 }
 
+export const getPathway = async (id) => {
+  const response = await apiClient.get(`/pathways/${id}`)
+  return response.data
+}
+
 export const createPathway = async (data) => {
   const response = await apiClient.post('/pathways', data)
   return response.data

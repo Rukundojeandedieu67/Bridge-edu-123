@@ -9,6 +9,7 @@ import MentorshipPage from './pages/MentorshipPage.jsx'
 import OpportunitiesPage from './pages/OpportunitiesPage.jsx'
 import OpportunityApplicationPage from './pages/OpportunityApplicationPage.jsx'
 import PathwaysPage from './pages/PathwaysPage.jsx'
+import CoursePage from './pages/CoursePage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
 import AdminPage from './pages/AdminPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
@@ -77,6 +78,7 @@ function App() {
               }
             />
             <Route path="/pathways" element={<PublicLayout><PathwaysPage /></PublicLayout>} />
+            <Route path="/pathways/:id" element={<PublicLayout><CoursePage /></PublicLayout>} />
             <Route path="/mentorship" element={<PublicLayout><MentorshipPage /></PublicLayout>} />
             <Route path="/profile" element={<ProtectedLayout><ProfilePage /></ProtectedLayout>} />
             <Route

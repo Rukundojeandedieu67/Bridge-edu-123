@@ -11,13 +11,13 @@ export function AuthProvider({ children }) {
 
   const persistAuthState = (nextToken, nextUser) => {
     const nextState = { token: nextToken, user: nextUser }
-    window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(nextState))
+    window.sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(nextState))
     setToken(nextToken)
     setUser(nextUser)
   }
 
   const clearAuthState = () => {
-    window.localStorage.removeItem(AUTH_STORAGE_KEY)
+    window.sessionStorage.removeItem(AUTH_STORAGE_KEY)
     setToken('')
     setUser(null)
   }
@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const restoreSession = async () => {
       try {
-        const rawState = window.localStorage.getItem(AUTH_STORAGE_KEY)
+        const rawState = window.sessionStorage.getItem(AUTH_STORAGE_KEY)
 
         if (!rawState) {
           setIsLoading(false)

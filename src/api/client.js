@@ -21,7 +21,7 @@ const getStoredAuth = () => {
     return null
   }
 
-  const rawState = window.localStorage.getItem(AUTH_STORAGE_KEY)
+  const rawState = window.sessionStorage.getItem(AUTH_STORAGE_KEY)
 
   if (!rawState) {
     return null
@@ -49,7 +49,7 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      window.localStorage.removeItem(AUTH_STORAGE_KEY)
+      window.sessionStorage.removeItem(AUTH_STORAGE_KEY)
       window.location.assign('/login')
     }
 
